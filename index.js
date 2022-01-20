@@ -17,6 +17,13 @@ const init = async () => {
     console.log(res.data);
 };
 
+const send = async (sCommandType, sChatId, oData) => {
+    const reply = Object.assign({
+        chat_id: sChatId
+    }, oData);
+    await axios.post(`${TELEGRAM_API}/send${sCommandType}`, reply);
+};
+
 app.get("/", (req, res) => {
     res.send('Welcome to getFileBot!');
 });
@@ -25,29 +32,19 @@ app.post(URI, async (req, res) => {
     if (!(req.body && req.body.message)) return res.send();
 
     const message = req.body.message,
-        link = message.text.includes("http") ? message.text : "";
+        chatId = message.chat.id;
 
-    if (link) {
-        const reply = {
-            chat_id: message.chat.id,
-            document: link
-        };
+    if (message.entities && message.entities[0].type === "url") {
+        const {length, offset} = message.entities[0];
+
         try {
-            await axios.post(`${TELEGRAM_API}/sendDocument`, reply);
+            await send("Document", chatId, { document: message.text.substr(offset, length) });
         } catch (e) {
             console.log(e);
-            const reply = {
-                chat_id: message.chat.id,
-                text: "Unable to fetch file!"
-            };
-            await axios.post(`${TELEGRAM_API}/sendMessage`, reply);
+            await send("Message", chatId, { text: "Unable to fetch file!" });
         }
     } else {
-        const reply = {
-            chat_id: message.chat.id,
-            text: "Enter a valid URL!"
-        };
-        await axios.post(`${TELEGRAM_API}/sendMessage`, reply);
+        await send("Message", chatId, { text: "Enter a valid URL!" });
     }
 
     res.send();
