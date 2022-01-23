@@ -1,5 +1,6 @@
 require('dotenv').config();
 const express = require('express');
+const cheerio = require('cheerio');
 const bodyParser = require('body-parser');
 const axios = require('axios');
 
@@ -34,14 +35,29 @@ app.post(URI, async (req, res) => {
     const message = req.body.message,
         chatId = message.chat.id;
 
-    if (message.entities && message.entities[0].type === "url") {
+    if (message.entities && (message.entities[0].type === "url" || message.entities[0].type === "text_link")) {
         const {length, offset} = message.entities[0];
+        const url = message.entities[0].type === "text_link" ? message.entities[0].url : message.text.substr(offset, length);
 
-        try {
-            await send("Document", chatId, { document: message.text.substr(offset, length) });
-        } catch (e) {
-            console.log(e);
-            await send("Message", chatId, { text: "Unable to fetch file!" });
+        if (url.includes("instagram") && url.includes("/p/")) {
+            try {
+                const oResponse = await axios.get(url);
+                const $ = cheerio.load(oResponse.data);
+                const image_link = $('meta[property="og:image"]').attr('content');
+                const video_link = $('meta[property="og:video"]').attr('content');
+                await send("Document", chatId, { document: video_link ? video_link : image_link });
+            } catch (err) {
+                console.log(err);
+                await send("Message", chatId, { text: "Unable to fetch file!" });
+            }
+        } else {
+            try {
+                axios.get(url);
+                await send("Document", chatId, { document: url });
+            } catch (e) {
+                console.log(e);
+                await send("Message", chatId, { text: "Unable to fetch file!" });
+            }
         }
     } else {
         await send("Message", chatId, { text: "Enter a valid URL!" });
