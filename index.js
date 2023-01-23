@@ -11,10 +11,14 @@ const app = express();
 app.use(bodyParser.json());
 
 const init = async () => {
-    let res = await axios.get(`${TELEGRAM_API}/deleteWebhook?drop_pending_updates=True`);
-    console.log(res.data);
-    res = await axios.get(`${TELEGRAM_API}/setWebHook?url=${WEBHOOK_URL}`);
-    console.log(res.data);
+    try {
+        let res = await axios.get(`${TELEGRAM_API}/deleteWebhook?drop_pending_updates=True`);
+        console.log(res.data);
+        res = await axios.get(`${TELEGRAM_API}/setWebHook?url=${WEBHOOK_URL}`);
+        console.log(res.data);
+    } catch (oError) {
+        console.log(oError);
+    }
 };
 
 const send = async (sCommandType, sChatId, oData) => {
@@ -34,11 +38,13 @@ app.post(URI, async (req, res) => {
     const message = req.body.message,
         chatId = message.chat.id;
 
-    if (message.entities && message.entities[0].type === "url") {
+    if (message.entities && (message.entities[0].type === "url" || message.entities[0].type === "text_link")) {
         const {length, offset} = message.entities[0];
+        const url = message.entities[0].type === "text_link" ? message.entities[0].url : message.text.substr(offset, length);
 
         try {
-            await send("Document", chatId, { document: message.text.substr(offset, length) });
+            axios.get(url);
+            await send("Document", chatId, { document: url });
         } catch (e) {
             console.log(e);
             await send("Message", chatId, { text: "Unable to fetch file!" });
@@ -50,7 +56,7 @@ app.post(URI, async (req, res) => {
     res.send();
 });
 
-app.listen(process.env.PORT || 3000, async () => {
-    console.log(`Server started on port ${process.env.PORT || 3000}`);
+app.listen(process.env.PORT || 3001, async () => {
+    console.log(`Server started on port ${process.env.PORT || 3001}`);
     await init();
 });
