@@ -2,30 +2,36 @@
   "name": "getfilebot",
   "version": "1.0.0",
   "description": "Fetch files from Internet",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node index.js",
-    "dev": "nodemon index.js"
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/freddy1135/getfilebot.git"
+    "url": "git+https://github.com/fredX4/getfilebot.git"
   },
-  "author": "freddy1135",
+  "author": "fredX4",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/freddy1135/getfilebot/issues"
+    "url": "https://github.com/fredX4/getfilebot/issues"
   },
-  "homepage": "https://github.com/freddy1135/getfilebot#readme",
+  "homepage": "https://github.com/fredX4/getfilebot#readme",
   "dependencies": {
-    "axios": "^0.21.1",
-    "body-parser": "^1.19.0",
+    "axios": "^0.21.4",
+    "body-parser": "^1.20.3",
     "cheerio": "^1.0.0-rc.10",
     "dotenv": "^10.0.0",
-    "express": "^4.17.3"
+    "express": "^4.21.2"
   },
   "devDependencies": {
-    "nodemon": "^2.0.12"
+    "@types/axios": "^0.14.4",
+    "@types/body-parser": "^1.19.6",
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.0.3",
+    "nodemon": "^2.0.12",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
   }
 }
